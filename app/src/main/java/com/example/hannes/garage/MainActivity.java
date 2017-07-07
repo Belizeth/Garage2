@@ -11,6 +11,8 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.provider.Settings;
+import android.provider.SyncStateContract;
+import android.support.annotation.RawRes;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -29,6 +31,11 @@ import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
 
 
+import java.util.prefs.Preferences;
+
+import static android.support.constraint.solver.SolverVariable.Type.CONSTANT;
+
+
 public class MainActivity extends AppCompatActivity {
     AudioManager am;
     private boolean garageAktuateOk = false;
@@ -39,6 +46,10 @@ public class MainActivity extends AppCompatActivity {
     private Functions functions = new Functions();
     private TextView tvSecondsToTerminate;
     private CountDownTimer doorTimer;
+    private float volume = 0.9f;
+    private MediaPlayer mPlayer;
+    private AudioManager audioManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
         dr = new BrickletDualRelay(getString(R.string.uid_garage_dual_relay), ipcon_garage);
         tvSecondsToTerminate = (TextView) findViewById(R.id.tvSeconds);
         TAG = "Carage";
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
         new AktuateGarage().execute("");
         doorTimer = new CountDownTimer(30000, 1000) {
@@ -58,8 +70,7 @@ public class MainActivity extends AppCompatActivity {
                 tvSecondsToTerminate.setText("" + millisUntilFinished / 1000);
             }
             public void onFinish() {
-                final MediaPlayer mPlayer = MediaPlayer.create(getApplicationContext(), R.raw.error_max);
-                mPlayer.start();
+                PlaySound(R.raw.error_max);
                 finish();
             }
         }.start();
@@ -110,27 +121,27 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(String result) {
             Log.i(TAG, "pj_PostExecute:: errorCode: " + errorCode + " garageAktuateOK: " + garageAktuateOk);
             if (errorCode == 10){
-                final MediaPlayer mPlayer = MediaPlayer.create(getApplicationContext(), R.raw.fehler_nicht_verbunden);
-                mPlayer.start();
+                PlaySound(R.raw.fehler_nicht_verbunden);
 
             } else if (errorCode == 11){
-                final MediaPlayer mPlayer = MediaPlayer.create(getApplicationContext(), R.raw.error_allready_connected);
-                mPlayer.start();
+
+
+                PlaySound(R.raw.error_allready_connected);
+
 
                 finish();
             }else if (errorCode == 12) {
-                final MediaPlayer mPlayer = MediaPlayer.create(getApplicationContext(), R.raw.fehler_netzwerk_ausnahme);
-                mPlayer.start();
+
+                PlaySound(R.raw.fehler_netzwerk_ausnahme);
 
                 finish();
             }else if (errorCode == 13) {
-                final MediaPlayer mPlayer = MediaPlayer.create(getApplicationContext(), R.raw.fehler_tiemout);
-                mPlayer.start();
+
+                PlaySound(R.raw.fehler_tiemout);
 
                 finish();
             } else if (garageAktuateOk) {
-                final MediaPlayer mPlayer = MediaPlayer.create(getApplicationContext(), R.raw.garage_oeffnet);
-                mPlayer.start();
+                PlaySound(R.raw.garage_oeffnet);
 
                 finish();
 
@@ -171,5 +182,21 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+    private void PlaySound(int soundFileID){
+        mPlayer = MediaPlayer.create(getApplicationContext(), soundFileID);
+        mPlayer.selectTrack(soundFileID);
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 1000, 0);
+        mPlayer.start();
+
+        while (mPlayer.isPlaying()){
+            try {
+                Thread.sleep(1000);
+            } catch (Exception e){
+                Log.i(TAG, "PJ_Da hats was::: " + e);
+            }
+
+        }
+        mPlayer.release();
     }
 }
