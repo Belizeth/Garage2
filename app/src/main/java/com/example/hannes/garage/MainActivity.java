@@ -49,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
     private float volume = 0.9f;
     private MediaPlayer mPlayer;
     private AudioManager audioManager;
+    int count = 0;
+    int maxtries = 5;
 
 
     @Override
@@ -70,8 +72,8 @@ public class MainActivity extends AppCompatActivity {
                 tvSecondsToTerminate.setText("" + millisUntilFinished / 1000);
             }
             public void onFinish() {
-                PlaySound(R.raw.error_max);
-                finish();
+               // PlaySound(R.raw.error_max);
+           //     finish();
             }
         }.start();
 
@@ -83,9 +85,9 @@ public class MainActivity extends AppCompatActivity {
     private class AktuateGarage extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... params) {
-            int count = 0;
-            int maxtries = 5;
-            while (!garageAktuateOk && count++ < maxtries) {
+
+
+            while (!garageAktuateOk && count++ <= maxtries) {
                 Log.i(TAG, "pj_innerwhile" + count + ":::");
                 try {
                     ipcon_garage.connect(getString(R.string.host_Garage), getResources().getInteger(R.integer.port_garage));
@@ -98,7 +100,6 @@ public class MainActivity extends AppCompatActivity {
                     /*if (count >= 5) {
                         errorCode = 4711;
                     }*/
-
                     //return null;
                 } catch (AlreadyConnectedException a){
                     errorCode = 11;
@@ -110,8 +111,6 @@ public class MainActivity extends AppCompatActivity {
                     Log.i(TAG, "pj_TimeoutExcExc" + count + ":::" + t);
                     errorCode = 13;
                 }
-
-
             }
 
             return null;
@@ -120,34 +119,36 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             Log.i(TAG, "pj_PostExecute:: errorCode: " + errorCode + " garageAktuateOK: " + garageAktuateOk);
-            if (errorCode == 10){
-                PlaySound(R.raw.fehler_nicht_verbunden);
+            if (count == maxtries) {
+                if (errorCode == 10) {
+                    PlaySound(R.raw.fehler_nicht_verbunden);
 
-            } else if (errorCode == 11){
-
-
-                PlaySound(R.raw.error_allready_connected);
-
-
-                finish();
-            }else if (errorCode == 12) {
-
-                PlaySound(R.raw.fehler_netzwerk_ausnahme);
-
-                finish();
-            }else if (errorCode == 13) {
-
-                PlaySound(R.raw.fehler_tiemout);
-
-                finish();
-            } else if (garageAktuateOk) {
+                } else if (errorCode == 11) {
+                    PlaySound(R.raw.error_allready_connected);
+                    finish();
+                } else if (errorCode == 12) {
+                    PlaySound(R.raw.fehler_netzwerk_ausnahme);
+                    finish();
+                } else if (errorCode == 13) {
+                    PlaySound(R.raw.fehler_tiemout);
+                    finish();
+                } else if (garageAktuateOk) {
+                    PlaySound(R.raw.garage_oeffnet);
+                    finish();
+                } else {
+                    Log.i(TAG, "pj_da hats was::: ");
+                }
+            } else if (garageAktuateOk){
                 PlaySound(R.raw.garage_oeffnet);
-
                 finish();
-
-            } else {
-                Log.i(TAG, "pj_da hats was::: " );
+            } else if (!garageAktuateOk){
+                try {
+                    Thread.sleep(2000);
+                } catch (Exception e){
+                    Log.i(TAG, "pj_da hats was:::: " + e );
+                }
             }
+
         }
 
         @Override
@@ -184,9 +185,17 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
     private void PlaySound(int soundFileID){
-        mPlayer = MediaPlayer.create(getApplicationContext(), soundFileID);
-        mPlayer.selectTrack(soundFileID);
+
+       /* mPlayer.selectTrack(soundFileID);
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 1000, 0);
+        */
+
+        audioManager.setMode(audioManager.MODE_IN_COMMUNICATION);
+        audioManager.setBluetoothScoOn(true);
+        audioManager.startBluetoothSco();
+        audioManager.setSpeakerphoneOn(false);
+
+        mPlayer = MediaPlayer.create(getApplicationContext(), soundFileID);
         mPlayer.start();
 
         while (mPlayer.isPlaying()){
