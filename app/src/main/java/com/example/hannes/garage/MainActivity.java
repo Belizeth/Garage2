@@ -49,8 +49,9 @@ public class MainActivity extends AppCompatActivity {
     private float volume = 0.9f;
     private MediaPlayer mPlayer;
     private AudioManager audioManager;
-    int count = 0;
-    int maxtries = 5;
+    private int count = 0;
+    private int maxtries = 5;
+    private boolean finishing = false;
 
 
     @Override
@@ -72,8 +73,8 @@ public class MainActivity extends AppCompatActivity {
                 tvSecondsToTerminate.setText("" + millisUntilFinished / 1000);
             }
             public void onFinish() {
-               // PlaySound(R.raw.error_max);
-           //     finish();
+                finishing = true;
+                PlaySound(R.raw.error_max);
             }
         }.start();
 
@@ -97,10 +98,6 @@ public class MainActivity extends AppCompatActivity {
                 } catch (NotConnectedException e) {
                     Log.i(TAG, "pj_notconnectedExc" + count + ":::" + e);
                         errorCode = 10;
-                    /*if (count >= 5) {
-                        errorCode = 4711;
-                    }*/
-                    //return null;
                 } catch (AlreadyConnectedException a){
                     errorCode = 11;
                     Log.i(TAG, "pj_allreadyconnectedExc" + count + ":::" + a);
@@ -121,26 +118,26 @@ public class MainActivity extends AppCompatActivity {
             Log.i(TAG, "pj_PostExecute:: errorCode: " + errorCode + " garageAktuateOK: " + garageAktuateOk);
             if (count == maxtries) {
                 if (errorCode == 10) {
+                    finishing = true;
                     PlaySound(R.raw.fehler_nicht_verbunden);
-
                 } else if (errorCode == 11) {
+                    finishing = true;
                     PlaySound(R.raw.error_allready_connected);
-                    finish();
                 } else if (errorCode == 12) {
+                    finishing = true;
                     PlaySound(R.raw.fehler_netzwerk_ausnahme);
-                    finish();
                 } else if (errorCode == 13) {
+                    finishing = true;
                     PlaySound(R.raw.fehler_tiemout);
-                    finish();
                 } else if (garageAktuateOk) {
+                    finishing = true;
                     PlaySound(R.raw.garage_oeffnet);
-                    finish();
                 } else {
                     Log.i(TAG, "pj_da hats was::: ");
                 }
             } else if (garageAktuateOk){
                 PlaySound(R.raw.garage_oeffnet);
-                finish();
+                finishing = true;
             } else if (!garageAktuateOk){
                 try {
                     Thread.sleep(2000);
@@ -200,23 +197,26 @@ public class MainActivity extends AppCompatActivity {
         audioManager.setSpeakerphoneOn(false);
 
         mPlayer = MediaPlayer.create(getApplicationContext(), soundFileID);
-        mPlayer.start();
+        mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
+            public void onCompletion(MediaPlayer player){
+                audioManager.setMode(audioManager.MODE_NORMAL);
+                audioManager.setBluetoothScoOn(false);
+                audioManager.stopBluetoothSco();
 
-        while (mPlayer.isPlaying()){
-            try {
-                Thread.sleep(1000);
-            } catch (Exception e){
-                Log.i(TAG, "PJ_Da hats was::: " + e);
+                audioManager.setSpeakerphoneOn(true);
+                mPlayer.reset();
+                mPlayer.release();
+                if (finishing){
+                    finish();
+                }
+
             }
-
+        });
+        try {
+            Thread.sleep(2000); // warte 2 Sekunden, ansonsten ist der TelefonCall noch nicht bereit und die Ausgabe wird verschluckt
+        } catch (Exception e){
+            Log.i(TAG, "pj_da hats was::: " + e);
         }
-        audioManager.setMode(mode);
-        audioManager.setBluetoothScoOn(bluetoothSco);
-        if(bluetoothSco) {
-            audioManager.stopBluetoothSco();
-        }
-        audioManager.setSpeakerphoneOn(speakerphoneOn);
-        mPlayer.reset();
-        mPlayer.release();
+        mPlayer.start();
     }
 }
