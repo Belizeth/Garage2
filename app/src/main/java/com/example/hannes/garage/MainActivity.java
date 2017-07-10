@@ -190,6 +190,10 @@ public class MainActivity extends AppCompatActivity {
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 1000, 0);
         */
 
+        int mode = audioManager.getMode();
+        boolean bluetoothSco = audioManager.isBluetoothScoOn();
+        boolean speakerphoneOn = audioManager.isSpeakerphoneOn();
+
         audioManager.setMode(audioManager.MODE_IN_COMMUNICATION);
         audioManager.setBluetoothScoOn(true);
         audioManager.startBluetoothSco();
@@ -206,6 +210,13 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
+        audioManager.setMode(mode);
+        audioManager.setBluetoothScoOn(bluetoothSco);
+        if(bluetoothSco) {
+            audioManager.stopBluetoothSco();
+        }
+        audioManager.setSpeakerphoneOn(speakerphoneOn);
+        mPlayer.reset();
         mPlayer.release();
     }
 }
