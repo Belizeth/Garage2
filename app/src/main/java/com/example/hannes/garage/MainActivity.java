@@ -73,8 +73,9 @@ public class MainActivity extends AppCompatActivity {
                 tvSecondsToTerminate.setText("" + millisUntilFinished / 1000);
             }
             public void onFinish() {
-                finishing = true;
-                PlaySound(R.raw.error_max);
+                //finishing = true;
+                //PlaySound(R.raw.error_max);
+                finish();
             }
         }.start();
 
