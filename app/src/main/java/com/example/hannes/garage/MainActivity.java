@@ -3,38 +3,21 @@ package com.example.hannes.garage;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkCapabilities;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Handler;
-import android.provider.Settings;
-import android.provider.SyncStateContract;
-import android.support.annotation.RawRes;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
-
 import com.tinkerforge.AlreadyConnectedException;
 import com.tinkerforge.BrickletDualRelay;
 import com.tinkerforge.IPConnection;
 import com.tinkerforge.NetworkException;
 import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
-
-
-import java.util.prefs.Preferences;
-
-import static android.support.constraint.solver.SolverVariable.Type.CONSTANT;
-
 
 public class MainActivity extends AppCompatActivity {
     AudioManager am;
@@ -82,13 +65,9 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "pj_back");
     }
 
-
-
     private class AktuateGarage extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... params) {
-
-
             while (!garageAktuateOk && count++ <= maxtries) {
                 Log.i(TAG, "pj_innerwhile" + count + ":::");
                 try {
@@ -110,7 +89,6 @@ public class MainActivity extends AppCompatActivity {
                     errorCode = 13;
                 }
             }
-
             return null;
         }
 
@@ -146,7 +124,6 @@ public class MainActivity extends AppCompatActivity {
                     Log.i(TAG, "pj_da hats was:::: " + e );
                 }
             }
-
         }
 
         @Override
@@ -158,8 +135,6 @@ public class MainActivity extends AppCompatActivity {
             Log.i(TAG, "pj_ProgressUpdate:: errorCode: " + errorCode + " garageAktuateOK: " + garageAktuateOk);
         }
     }
-
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -183,14 +158,6 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
     private void PlaySound(int soundFileID){
-
-       /* mPlayer.selectTrack(soundFileID);
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 1000, 0);
-        */
-
-        int mode = audioManager.getMode();
-        boolean bluetoothSco = audioManager.isBluetoothScoOn();
-        boolean speakerphoneOn = audioManager.isSpeakerphoneOn();
 
         audioManager.setMode(audioManager.MODE_IN_COMMUNICATION);
         audioManager.setBluetoothScoOn(true);
