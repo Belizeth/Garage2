@@ -89,6 +89,13 @@ public class MainActivity extends AppCompatActivity {
                     Log.i(TAG, "pj_TimeoutExcExc" + count + ":::" + t);
                     errorCode = 13;
                 }
+                if (!garageAktuateOk && count <= maxtries){
+                    try {
+                        Thread.sleep(2000);
+                    } catch (Exception e) {
+                        Log.i(TAG, "pj_Thread_Sleep" + count + ":::" + e);
+                    }
+                }
             }
             return null;
         }
@@ -118,12 +125,6 @@ public class MainActivity extends AppCompatActivity {
             } else if (garageAktuateOk){
                 PlaySound(R.raw.garage_oeffnet, MainActivity.this);
                 finishing = true;
-            } else if (!garageAktuateOk){
-                try {
-                    Thread.sleep(2000);
-                } catch (Exception e){
-                    Log.i(TAG, "pj_da hats was:::: " + e );
-                }
             }
         }
 
