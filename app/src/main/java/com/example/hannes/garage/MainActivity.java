@@ -20,7 +20,7 @@ import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
 
 public class MainActivity extends AppCompatActivity {
-    AudioManager am;
+    //AudioManager am;
     private boolean garageAktuateOk = false;
     private IPConnection ipcon_garage;
     private BrickletDualRelay dr;
@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private int count = 0;
     private int maxtries = 5;
     private boolean finishing = false;
+
 
 
     @Override
@@ -98,24 +99,24 @@ public class MainActivity extends AppCompatActivity {
             if (count == maxtries) {
                 if (errorCode == 10) {
                     finishing = true;
-                    PlaySound(R.raw.fehler_nicht_verbunden);
+                    PlaySound(R.raw.fehler_nicht_verbunden, MainActivity.this);
                 } else if (errorCode == 11) {
                     finishing = true;
-                    PlaySound(R.raw.error_allready_connected);
+                    PlaySound(R.raw.error_allready_connected, MainActivity.this);
                 } else if (errorCode == 12) {
                     finishing = true;
-                    PlaySound(R.raw.fehler_netzwerk_ausnahme);
+                    PlaySound(R.raw.fehler_netzwerk_ausnahme, MainActivity.this);
                 } else if (errorCode == 13) {
                     finishing = true;
-                    PlaySound(R.raw.fehler_tiemout);
+                    PlaySound(R.raw.fehler_tiemout, MainActivity.this);
                 } else if (garageAktuateOk) {
                     finishing = true;
-                    PlaySound(R.raw.garage_oeffnet);
+                    PlaySound(R.raw.garage_oeffnet, MainActivity.this);
                 } else {
                     Log.i(TAG, "pj_da hats was::: ");
                 }
             } else if (garageAktuateOk){
-                PlaySound(R.raw.garage_oeffnet);
+                PlaySound(R.raw.garage_oeffnet, MainActivity.this);
                 finishing = true;
             } else if (!garageAktuateOk){
                 try {
@@ -157,34 +158,58 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-    private void PlaySound(int soundFileID){
+    private void PlaySound(int soundFileID, final Context context){
+        boolean gotFocus = requestAudioFocusForMyApp(MainActivity.this);
 
-        audioManager.setMode(audioManager.MODE_IN_COMMUNICATION);
-        audioManager.setBluetoothScoOn(true);
-        audioManager.startBluetoothSco();
-        audioManager.setSpeakerphoneOn(false);
+        if(gotFocus) {
+            audioManager.setMode(audioManager.MODE_IN_COMMUNICATION);
+            audioManager.setBluetoothScoOn(true);
+            audioManager.startBluetoothSco();
+            audioManager.setSpeakerphoneOn(false);
 
-        mPlayer = MediaPlayer.create(getApplicationContext(), soundFileID);
-        mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
-            public void onCompletion(MediaPlayer player){
-                audioManager.setMode(audioManager.MODE_NORMAL);
-                audioManager.setBluetoothScoOn(false);
-                audioManager.stopBluetoothSco();
+            mPlayer = MediaPlayer.create(getApplicationContext(), soundFileID);
+            mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
+                public void onCompletion(MediaPlayer player){
+                    //       am.abandonAudioFocus(afChangeListener);
+                    audioManager.abandonAudioFocus(null);
+                    audioManager.setMode(audioManager.MODE_NORMAL);
+                    audioManager.setBluetoothScoOn(false);
+                    audioManager.stopBluetoothSco();
 
-                audioManager.setSpeakerphoneOn(true);
-                mPlayer.reset();
-                mPlayer.release();
-                if (finishing){
-                    finish();
+                    audioManager.setSpeakerphoneOn(true);
+
+
+                 //   mPlayer.reset();
+                 //   mPlayer.release();
+                    if (finishing){
+                        finish();
+                    }
+
                 }
+            });
 
+            try {
+                Thread.sleep(2000); // warte 2 Sekunden, ansonsten ist der TelefonCall noch nicht bereit und die Ausgabe wird verschluckt
+            } catch (Exception e){
+                Log.i(TAG, "pj_da hats was::: " + e);
             }
-        });
-        try {
-            Thread.sleep(2000); // warte 2 Sekunden, ansonsten ist der TelefonCall noch nicht bereit und die Ausgabe wird verschluckt
-        } catch (Exception e){
-            Log.i(TAG, "pj_da hats was::: " + e);
+            mPlayer.start();
         }
-        mPlayer.start();
+    }
+    private boolean requestAudioFocusForMyApp(final Context context) {
+        // Request audio focus for playback
+        int result = audioManager.requestAudioFocus(null,
+                // Use the music stream.
+                AudioManager.MODE_IN_COMMUNICATION,
+                // Request permanent focus.
+                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+
+        if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            Log.d("AudioFocus", "Audio focus received");
+            return true;
+        } else {
+            Log.d("AudioFocus", "Audio focus NOT received");
+            return false;
+        }
     }
 }
