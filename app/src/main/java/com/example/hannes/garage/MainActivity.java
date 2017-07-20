@@ -167,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
             audioManager.setBluetoothScoOn(true);
             audioManager.startBluetoothSco();
             audioManager.setSpeakerphoneOn(false);
+            audioManager.setStreamVolume(AudioManager.MODE_IN_COMMUNICATION, audioManager.getStreamMaxVolume(AudioManager.MODE_IN_COMMUNICATION), 0);
 
             mPlayer = MediaPlayer.create(getApplicationContext(), soundFileID);
             mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
