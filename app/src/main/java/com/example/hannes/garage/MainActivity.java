@@ -6,6 +6,7 @@ import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -59,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
             public void onFinish() {
                 //finishing = true;
                 //PlaySound(R.raw.error_max);
-                finish();
+                finishAndRemoveTask();
             }
         }.start();
 
@@ -163,11 +164,13 @@ public class MainActivity extends AppCompatActivity {
         boolean gotFocus = requestAudioFocusForMyApp(MainActivity.this);
 
         if(gotFocus) {
-            audioManager.setMode(audioManager.MODE_IN_COMMUNICATION);
+            //audioManager.setMode(audioManager.MODE_IN_COMMUNICATION);
+            audioManager.setMode(AudioManager.MODE_RINGTONE);
             audioManager.setBluetoothScoOn(true);
             audioManager.startBluetoothSco();
             audioManager.setSpeakerphoneOn(false);
-            audioManager.setStreamVolume(AudioManager.MODE_IN_COMMUNICATION, audioManager.getStreamMaxVolume(AudioManager.MODE_IN_COMMUNICATION), 0);
+            //audioManager.setStreamVolume(AudioManager.MODE_IN_COMMUNICATION, audioManager.getStreamMaxVolume(AudioManager.MODE_IN_COMMUNICATION), 0);
+            audioManager.setStreamVolume(AudioManager.MODE_RINGTONE, 100, 0);
 
             mPlayer = MediaPlayer.create(getApplicationContext(), soundFileID);
             mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
@@ -184,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
                  //   mPlayer.reset();
                  //   mPlayer.release();
                     if (finishing){
-                        finish();
+                        finishAndRemoveTask();
                     }
 
                 }
@@ -202,7 +205,8 @@ public class MainActivity extends AppCompatActivity {
         // Request audio focus for playback
         int result = audioManager.requestAudioFocus(null,
                 // Use the music stream.
-                AudioManager.MODE_IN_COMMUNICATION,
+                //AudioManager.MODE_IN_COMMUNICATION,
+                AudioManager.MODE_RINGTONE,
                 // Request permanent focus.
                 AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
 
