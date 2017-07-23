@@ -13,6 +13,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import com.tinkerforge.AlreadyConnectedException;
 import com.tinkerforge.BrickletDualRelay;
 import com.tinkerforge.IPConnection;
@@ -58,8 +60,9 @@ public class MainActivity extends AppCompatActivity {
                 tvSecondsToTerminate.setText("" + millisUntilFinished / 1000);
             }
             public void onFinish() {
-                //finishing = true;
-                //PlaySound(R.raw.error_max);
+                finishing = true;
+                PlaySound(R.raw.error_max, MainActivity.this);
+
                 finishAndRemoveTask();
             }
         }.start();
@@ -74,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "pj_innerwhile" + count + ":::");
                 try {
                     ipcon_garage.connect(getString(R.string.host_Garage), getResources().getInteger(R.integer.port_garage));
-                    dr.setMonoflop((short) 1, true, (long) 500);
+                   dr.setMonoflop((short) 1, true, (long) 500);
                     ipcon_garage.disconnect();
                     garageAktuateOk = true;
                 } catch (NotConnectedException e) {
@@ -161,54 +164,45 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
     private void PlaySound(int soundFileID, final Context context){
-        boolean gotFocus = requestAudioFocusForMyApp(MainActivity.this);
+
+        boolean gotFocus = requestAudioFocusForMyApp();
 
         if(gotFocus) {
-            //audioManager.setMode(audioManager.MODE_IN_COMMUNICATION);
-            audioManager.setMode(AudioManager.MODE_RINGTONE);
+            audioManager.setMode(0);
             audioManager.setBluetoothScoOn(true);
             audioManager.startBluetoothSco();
-            audioManager.setSpeakerphoneOn(false);
-            //audioManager.setStreamVolume(AudioManager.MODE_IN_COMMUNICATION, audioManager.getStreamMaxVolume(AudioManager.MODE_IN_COMMUNICATION), 0);
-            audioManager.setStreamVolume(AudioManager.MODE_RINGTONE, 100, 0);
+            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+            audioManager.setStreamVolume(AudioManager.MODE_IN_COMMUNICATION, audioManager.getStreamMaxVolume(AudioManager.MODE_IN_COMMUNICATION), 0);
 
             mPlayer = MediaPlayer.create(getApplicationContext(), soundFileID);
             mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
                 public void onCompletion(MediaPlayer player){
-                    //       am.abandonAudioFocus(afChangeListener);
+
+                    audioManager.setMode(AudioManager.MODE_NORMAL);
                     audioManager.abandonAudioFocus(null);
-                    audioManager.setMode(audioManager.MODE_NORMAL);
-                    audioManager.setBluetoothScoOn(false);
-                    audioManager.stopBluetoothSco();
 
-                    audioManager.setSpeakerphoneOn(true);
-
-
-                 //   mPlayer.reset();
-                 //   mPlayer.release();
+                  //  mPlayer.reset();
+                   // mPlayer.release();
                     if (finishing){
+                        doorTimer.cancel();
                         finishAndRemoveTask();
                     }
 
                 }
             });
 
-            try {
-                Thread.sleep(2000); // warte 2 Sekunden, ansonsten ist der TelefonCall noch nicht bereit und die Ausgabe wird verschluckt
-            } catch (Exception e){
-                Log.i(TAG, "pj_da hats was::: " + e);
+            if(!audioManager.isMusicActive()) {
+                try {
+                    Thread.sleep(2000); // warte 2 Sekunden, ansonsten ist der TelefonCall noch nicht bereit und die Ausgabe wird verschluckt
+                } catch (Exception e) {
+                    Log.i(TAG, "pj_da hats was::: " + e);
+                }
             }
             mPlayer.start();
         }
     }
-    private boolean requestAudioFocusForMyApp(final Context context) {
-        // Request audio focus for playback
-        int result = audioManager.requestAudioFocus(null,
-                // Use the music stream.
-                //AudioManager.MODE_IN_COMMUNICATION,
-                AudioManager.MODE_RINGTONE,
-                // Request permanent focus.
-                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+    private boolean requestAudioFocusForMyApp() {
+        int result = audioManager.requestAudioFocus(null, AudioManager.MODE_IN_COMMUNICATION, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
 
         if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
             Log.d("AudioFocus", "Audio focus received");
