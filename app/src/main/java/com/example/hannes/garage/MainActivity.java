@@ -57,9 +57,8 @@ public class MainActivity extends AppCompatActivity {
                 tvSecondsToTerminate.setText("" + millisUntilFinished / 1000);
             }
             public void onFinish() {
-                //finishing = true;
-                //PlaySound(R.raw.error_max);
-                finish();
+                finishing = true;
+                PlaySound(R.raw.error_max, MainActivity.this);
             }
         }.start();
 
@@ -170,6 +169,7 @@ public class MainActivity extends AppCompatActivity {
             audioManager.setStreamVolume(AudioManager.MODE_IN_COMMUNICATION, audioManager.getStreamMaxVolume(AudioManager.MODE_IN_COMMUNICATION), 0);
 
             mPlayer = MediaPlayer.create(getApplicationContext(), soundFileID);
+            mPlayer.start();
             mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
                 public void onCompletion(MediaPlayer player){
                     //       am.abandonAudioFocus(afChangeListener);
@@ -184,18 +184,19 @@ public class MainActivity extends AppCompatActivity {
                  //   mPlayer.reset();
                  //   mPlayer.release();
                     if (finishing){
-                        finish();
+                        finishAndRemoveTask();
+                        //finish();
                     }
 
                 }
             });
 
-            try {
+            /*try {
                 Thread.sleep(2000); // warte 2 Sekunden, ansonsten ist der TelefonCall noch nicht bereit und die Ausgabe wird verschluckt
             } catch (Exception e){
                 Log.i(TAG, "pj_da hats was::: " + e);
             }
-            mPlayer.start();
+            mPlayer.start();*/
         }
     }
     private boolean requestAudioFocusForMyApp(final Context context) {
