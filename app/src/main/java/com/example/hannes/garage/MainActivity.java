@@ -171,8 +171,13 @@ public class MainActivity extends AppCompatActivity {
             audioManager.setMode(0);
             audioManager.setBluetoothScoOn(true);
             audioManager.startBluetoothSco();
-            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
-            audioManager.setStreamVolume(AudioManager.MODE_IN_COMMUNICATION, audioManager.getStreamMaxVolume(AudioManager.MODE_IN_COMMUNICATION), 0);
+
+            if (audioManager.isMusicActive()){
+                audioManager.setMode(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
+            } else {
+                audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+                audioManager.setStreamVolume(AudioManager.MODE_IN_COMMUNICATION, audioManager.getStreamMaxVolume(AudioManager.MODE_IN_COMMUNICATION), 0);
+            }
 
             mPlayer = MediaPlayer.create(getApplicationContext(), soundFileID);
             mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
@@ -184,6 +189,11 @@ public class MainActivity extends AppCompatActivity {
                   //  mPlayer.reset();
                    // mPlayer.release();
                     if (finishing){
+                        try {
+                            Thread.sleep(2000);
+                        } catch (Exception e) {
+                            Log.i(TAG, "pj_da hats was::: " + e);
+                        }
                         doorTimer.cancel();
                         finishAndRemoveTask();
                     }
