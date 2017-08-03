@@ -212,7 +212,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     private boolean requestAudioFocusForMyApp() {
-        int result = audioManager.requestAudioFocus(null, AudioManager.MODE_IN_COMMUNICATION, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+        int result = 0;
+        if (audioManager.isMusicActive()) {
+            result = audioManager.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
+        } else {
+            result = audioManager.requestAudioFocus(null, AudioManager.MODE_IN_COMMUNICATION, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+        }
 
         if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
             Log.d("AudioFocus", "Audio focus received");
