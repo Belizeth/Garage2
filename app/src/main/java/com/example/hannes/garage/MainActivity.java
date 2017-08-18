@@ -168,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
         boolean gotFocus = requestAudioFocusForMyApp();
 
         if(gotFocus) {
-            audioManager.setMode(0);
+            //audioManager.setMode(0);
             audioManager.setBluetoothScoOn(true);
             audioManager.startBluetoothSco();
 
@@ -183,11 +183,15 @@ public class MainActivity extends AppCompatActivity {
             mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
                 public void onCompletion(MediaPlayer player){
 
+
                     audioManager.setMode(AudioManager.MODE_NORMAL);
+                    audioManager.setBluetoothScoOn(false);
+                    audioManager.stopBluetoothSco();
                     audioManager.abandonAudioFocus(null);
 
-                  //  mPlayer.reset();
-                   // mPlayer.release();
+                    mPlayer.reset();
+                    mPlayer.release();
+
                     if (finishing){
                         try {
                             Thread.sleep(2000);
@@ -201,13 +205,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-            if(!audioManager.isMusicActive()) {
+            //if(!audioManager.isMusicActive()) {
                 try {
                     Thread.sleep(2000); // warte 2 Sekunden, ansonsten ist der TelefonCall noch nicht bereit und die Ausgabe wird verschluckt
                 } catch (Exception e) {
                     Log.i(TAG, "pj_da hats was::: " + e);
                 }
-            }
+           // }
             mPlayer.start();
         }
     }
